@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RenderGit Web App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0; padding: 0; background: linear-gradient(120deg, #e0e7ff 0%, #f7f7f7 100%);
+            min-height: 100vh;
+        }
+        .container {
+            width: 100vw;
+            min-height: 100vh;
+            margin: 0;
+            background: #fff;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0 0 2rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            width: 100%;
+            margin: 0;
+            padding: 2.5rem 2.5vw 2rem 2.5vw;
+            box-sizing: border-box;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2.2rem;
+            color: #1a237e;
+            letter-spacing: 1px;
+        }
+        .features {
+            background: #f3f6fd;
+            border-radius: 10px;
+            padding: 1.5rem 1.5rem 1.2rem 1.5rem;
+            margin-bottom: 2.2rem;
+            box-shadow: 0 2px 8px #3b82f610;
+        }
+        .features-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.7rem;
+        }
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            color: #374151;
+        }
+        .features-list li {
+            margin-bottom: 0.5rem;
+            font-size: 1.08rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6em;
+        }
+        .features-list li .icon {
+            font-size: 1.2em;
+            margin-right: 0.2em;
+        }
+        form {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            font-size: 1.1rem;
+            border: 1.5px solid #bfc7d1;
+            border-radius: 6px;
+            transition: border 0.2s;
+        }
+        input[type="text"]:focus {
+            border: 1.5px solid #3b82f6;
+            outline: none;
+        }
+        button {
+            padding: 0.7rem 2rem;
+            font-size: 1.1rem;
+            border: none;
+            background: linear-gradient(90deg, #3b82f6 60%, #6366f1 100%);
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 8px #3b82f620;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #2563eb 60%, #4f46e5 100%);
+        }
+        .error {
+            color: #b00020;
+            margin-bottom: 1rem;
+            background: #fff3f3;
+            border-left: 4px solid #b00020;
+            padding: 0.7rem 1rem;
+            border-radius: 4px;
+        }
+        .result {
+            margin-top: 2rem;
+        }
+        .footer {
+            margin-top: 3rem;
+            color: #888;
+            font-size: 0.95em;
+            text-align: center;
+        }
+        /* Loader styles */
+        .loader {
+            display: none;
+            margin: 2rem auto 1rem auto;
+            border: 6px solid #e0e7ff;
+            border-top: 6px solid #3b82f6;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-text {
+            text-align: center;
+            color: #3b82f6;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1>RenderGit: Flatten a GitHub Repo to a Single HTML Page</h1>
+            <div class="features">
+                <div class="features-title">Features</div>
+                <ul class="features-list">
+                    <li><span class="icon">⚡</span>Instantly flatten any GitHub repo into a single, searchable HTML page</li>
+                    <li><span class="icon">🎨</span>Syntax highlighting for code, markdown rendering for docs</li>
+                    <li><span class="icon">🗂️</span>Sidebar navigation and directory tree overview</li>
+                    <li><span class="icon">🔍</span>Ctrl+F to search across all files at once</li>
+                    <li><span class="icon">👤</span>Human View: Pretty interface with navigation and visual goodies</li>
+                    <li><span class="icon">🤖</span>LLM View: Copy the entire codebase as CXML for Claude/ChatGPT</li>
+                    <li><span class="icon">🚫</span>Skips binaries and large files automatically</li>
+                    <li><span class="icon">📱</span>Responsive design, works on mobile</li>
+                </ul>
+            </div>
+            <form method="post" id="repoForm" autocomplete="off">
+                <input type="text" name="repo_url" placeholder="Enter GitHub repo URL (e.g. https://github.com/user/repo)" value="{{ repo_url|e }}" required>
+                <button type="submit">Render</button>
+            </form>
+            <div class="loader" id="loader"></div>
+            <div class="loader-text" id="loaderText" style="display:none;">Rendering repo, please wait...</div>
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+            {% if html_result %}
+                <div class="result">
+                    <h2>Rendered Output</h2>
+                    <div style="border:1px solid #ccc; border-radius:6px; overflow:auto; max-height:70vh; background:#fafbfc; padding:1rem;">
+                        {{ html_result|safe }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="footer">
+            &copy; 2025 RenderGit Web App &mdash; Powered by Flask
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    // Show loader on form submit
+    document.getElementById('repoForm').addEventListener('submit', function() {
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('loaderText').style.display = 'block';
+    });
+</script>
